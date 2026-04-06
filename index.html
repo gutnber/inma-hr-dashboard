@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INMA - HR Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ==================== TOAST ==================== -->
+<div id="toast" class="toast"></div>
+
+<!-- ==================== LOGIN VIEW ==================== -->
+<div id="login-view" class="login-container">
+  <div class="login-box">
+    <div class="login-logo">INMA</div>
+    <div class="login-subtitle">Soluciones Inmobiliarias</div>
+    <h2><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</h2>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="login-user"><i class="fas fa-user"></i> Usuario</label>
+        <input type="text" id="login-user" placeholder="Nombre de usuario" required>
+      </div>
+      <div class="form-group">
+        <label for="login-pass"><i class="fas fa-lock"></i> Contraseña</label>
+        <input type="password" id="login-pass" placeholder="Contraseña" required>
+      </div>
+      <button type="submit" class="btn btn-gold btn-lg btn-block mt-2">
+        <i class="fas fa-arrow-right"></i> Entrar
+      </button>
+    </form>
+    <p class="text-muted mt-2" style="font-size:0.78rem;">
+      Demo: <strong>admin</strong> / <strong>admin123</strong> o <strong>maria</strong> / <strong>pass123</strong>
+    </p>
+  </div>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div id="app-view" class="app-layout" style="display:none;">
+  
+  <!-- Mobile Toggle -->
+  <button class="mobile-toggle" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+  
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">INMA</div>
+      <div class="tagline">HR Dashboard</div>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div class="user-info">
+        <div class="name" id="user-display-name">-</div>
+        <div class="role" id="user-role-display">-</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <button class="nav-item active" data-page="dashboard" onclick="navigateTo('dashboard')">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </button>
+      <button class="nav-item" data-page="reloj" onclick="navigateTo('reloj')">
+        <i class="fas fa-clock"></i> Reloj de Asistencia
+      </button>
+      <button class="nav-item" data-page="tareas" onclick="navigateTo('tareas')">
+        <i class="fas fa-tasks"></i> Tareas
+      </button>
+      <button class="nav-item admin-only" data-page="admin" onclick="navigateTo('admin')">
+        <i class="fas fa-user-shield"></i> Admin Panel
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <button class="nav-item" onclick="logout()" style="color:rgba(255,255,255,0.5);">
+        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+      </button>
+    </div>
+  </nav>
+  
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <div id="page-dashboard" class="page-section active">
+      <div class="page-header">
+        <h1><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
+        <p>Resumen general de la semana</p>
+      </div>
+      
+      <div class="metrics-grid" id="dash-metrics"></div>
+      
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;">
+        <!-- Today clock-ins -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-history"></i> Últimos registros del día</h3>
+          </div>
+          <div class="card-body">
+            <div id="dash-today-records"></div>
+          </div>
+        </div>
+        
+        <!-- Upcoming tasks -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fas fa-calendar-day"></i> Tareas próximas (3 días)</h3>
+          </div>
+          <div class="card-body" id="dash-upcoming-tasks"></div>
+        </div>
+      </div>
+      
+      <!-- Weekly hours per employee -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <h3><i class="fas fa-chart-bar"></i> Horas semanales por empleado</h3>
+        </div>
+        <div class="card-body" id="dash-weekly-chart"></div>
+      </div>
+    </div>
+    
+    <!-- ===== RELOJ PAGE ===== -->
+    <div id="page-reloj" class="page-section">
+      <div class="page-header">
+        <h1><i class="fas fa-clock"></i> Reloj de Asistencia</h1>
+        <p>Registra tu entrada y salida</p>
+      </div>
+      
+      <div class="card">
+        <div class="card-body clock-area">
+          <div class="current-time" id="clock-time">00:00:00</div>
+          <div class="current-date" id="clock-date">-</div>
+          <div id="clock-status-area"></div>
+          <button id="clock-btn" class="btn" onclick="toggleClock()">
+            <i class="fas fa-sign-in-alt"></i> Entrar
+          </button>
+          <div class="mt-2 text-muted" id="last-clock-msg"></div>
+        </div>
+      </div>
+      
+      <!-- Today's records -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <h3><i class="fas fa-calendar-day"></i> Registros de Hoy</h3>
+          <span class="text-muted" id="today-total"></span>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive" id="today-records-table"></div>
+        </div>
+      </div>
+      
+      <!-- Weekly history -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <h3><i class="fas fa-calendar-week"></i> Historial Semanal</h3>
+          <span class="text-muted">Horas calculadas: <strong id="week-total-hours">0.0</strong>h</span>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive" id="week-records-table"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ===== TAREAS PAGE ===== -->
+    <div id="page-tareas" class="page-section">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:10px;">
+        <div>
+          <h1><i class="fas fa-tasks"></i> Gestor de Tareas</h1>
+          <p>Administra y da seguimiento a las tareas</p>
+        </div>
+        <div class="flex gap-1">
+          <button class="btn btn-gold btn-sm" onclick="openTaskModal()">
+            <i class="fas fa-plus"></i> Nueva Tarea
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="exportTasksCSV()">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+          </button>
+        </div>
+      </div>
+      
+      <!-- Filters -->
+      <div class="card">
+        <div class="card-body">
+          <div class="filter-row">
+            <div class="form-group">
+              <select id="filter-emp" onchange="renderTasks()">
+                <option value="">Todos los empleados</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <select id="filter-priority" onchange="renderTasks()">
+                <option value="">Todas las prioridades</option>
+                <option value="alta">Alta</option>
+                <option value="media">Media</option>
+                <option value="baja">Baja</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <select id="filter-status" onchange="renderTasks()">
+                <option value="">Todos los estados</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="completada">Completada</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Task list -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <h3><i class="fas fa-list"></i> Lista de Tareas</h3>
+          <span class="text-muted" id="task-count">-</span>
+        </div>
+        <div class="card-body" id="task-list"></div>
+      </div>
+    </div>
+    
+    <!-- ===== ADMIN PAGE ===== -->
+    <div id="page-admin" class="page-section">
+      <div class="page-header flex justify-between items-center" style="flex-wrap:wrap;gap:10px;">
+        <div>
+          <h1><i class="fas fa-user-shield"></i> Panel de Administración</h1>
+          <p>Vista completa de todos los registros</p>
+        </div>
+        <div class="flex gap-1">
+          <button class="btn btn-gold btn-sm" onclick="exportClockCSV()">
+            <i class="fas fa-file-csv"></i> Exportar Reloj CSV
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="exportTasksCSV()">
+            <i class="fas fa-file-csv"></i> Exportar Tareas CSV
+          </button>
+        </div>
+      </div>
+      
+      <div class="admin-grid">
+        <!-- Weekly hours per employee -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <i class="fas fa-clock"></i> Horas Semanales por Empleado
+          </div>
+          <div class="admin-card-body" id="admin-weekly-hours"></div>
+        </div>
+        
+        <!-- Today's activity (admin sees all) -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <i class="fas fa-history"></i> Actividad Reciente (Todos)
+          </div>
+          <div class="admin-card-body" id="admin-recent-activity"></div>
+        </div>
+        
+        <!-- All pending tasks -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <i class="fas fa-exclamation-circle"></i> Tareas Pendientes
+          </div>
+          <div class="admin-card-body" id="admin-pending-tasks"></div>
+        </div>
+        
+        <!-- Overdue tasks -->
+        <div class="admin-card">
+          <div class="admin-card-header" style="background:var(--danger);">
+            <i class="fas fa-times-circle"></i> Tareas Atrasadas
+          </div>
+          <div class="admin-card-body" id="admin-overdue-tasks"></div>
+        </div>
+      </div>
+      
+      <!-- Full clock records table -->
+      <div class="card mt-2">
+        <div class="card-header">
+          <h3><i class="fas fa-table"></i> Todos los Registros de Reloj</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive" id="admin-all-clock-records"></div>
+        </div>
+      </div>
+    </div>
+    
+  </main>
+</div>
+
+<!-- ==================== TASK MODAL ==================== -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title"><i class="fas fa-plus-circle"></i> Nueva Tarea</h3>
+      <button class="modal-close" onclick="closeTaskModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="task-form">
+        <input type="hidden" id="task-edit-id">
+        <div class="form-group">
+          <label>Título</label>
+          <input type="text" id="task-titulo" placeholder="Ej. Llamar a cliente" required>
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="task-descripcion" rows="3" placeholder="Detalles de la tarea..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prioridad</label>
+            <select id="task-prioridad">
+              <option value="alta">Alta</option>
+              <option value="media" selected>Media</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fecha Límite</label>
+            <input type="date" id="task-fecha" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Asignar a</label>
+          <select id="task-asignado" required></select>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeTaskModal()">Cancelar</button>
+      <button class="btn btn-gold btn-sm" onclick="saveTask()"><i class="fas fa-save"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
